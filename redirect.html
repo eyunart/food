@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>跳转中...</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <script>
+        // ========== 请修改这里的配置 ==========
+        const TARGET_URL = "eyunart.com"; // 你要跳转的目标网址
+        const LOG_API_URL = "https://api.heetcode.com/logs"; // 免费日志存储API（无需注册）
+        // =====================================
+
+        // 1. 获取IP和国家信息的核心函数
+        async function getIpAndCountry() {
+            try {
+                // 使用免费的IP查询API（支持跨域）
+                const response = await fetch("https://ipapi.co/json/");
+                const ipData = await response.json();
+                
+                // 整理需要记录的信息
+                const logData = {
+                    ip: ipData.ip || "未知",
+                    country: ipData.country_name || "未知",
+                    country_code: ipData.country_code || "未知",
+                    region: ipData.region || "未知",
+                    city: ipData.city || "未知",
+                    isp: ipData.org || "未知",
+                    timestamp: new Date().toLocaleString() // 访问时间
+                };
+
+                return logData;
+            } catch (error) {
+                console.error("获取IP信息失败：", error);
+                return { ip: "未知", country: "未知", timestamp: new Date().toLocaleString() };
+            }
+        }
+
+        // 2. 记录日志到在线服务
+        async function logVisitorInfo(logData) {
+            try {
+                // 发送日志数据到免费存储API
+                await fetch(LOG_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(logData)
+                });
+            } catch (error) {
+                console.error("记录日志失败：", error);
+            }
+        }
+
+        // 3. 主流程：获取信息 → 记录 → 跳转
+        async function main() {
+            const ipInfo = await getIpAndCountry(); // 获取IP和国家
+            await logVisitorInfo(ipInfo); // 记录日志
+            window.location.href = TARGET_URL; // 跳转到目标网址
+        }
+
+        // 启动主流程
+        main();
+    </script>
+</body>
+</html>
